@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    tools:context=".FragmentBookList">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:id="@+id/imgBook"
+            android:layout_width="125dp"
+            android:layout_height="125dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="16dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:src="@tools:sample/avatars" />
+
+        <TextView
+            android:id="@+id/txtTitulo"
+            android:layout_width="235dp"
+            android:layout_height="27dp"
+            android:layout_marginStart="24dp"
+            android:layout_marginTop="16dp"
+            android:text="TextView"
+            app:layout_constraintStart_toEndOf="@+id/imgBook"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <Button
+            android:id="@+id/btnDetalles"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="Detalles"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/txtTitulo"
+            app:layout_constraintVertical_bias="1.0" />
+
+        <TextView
+            android:id="@+id/txtNumCopias"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="16dp"
+            android:text="TextView"
+            app:layout_constraintStart_toEndOf="@+id/imgBook"
+            app:layout_constraintTop_toBottomOf="@+id/txtTitulo" />
+
+        <TextView
+            android:id="@+id/txtCopiasDisp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="25dp"
+            android:layout_marginTop="16dp"
+            android:text="TextView"
+            app:layout_constraintStart_toEndOf="@+id/txtNumCopias"
+            app:layout_constraintTop_toBottomOf="@+id/txtTitulo" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</FrameLayout>
