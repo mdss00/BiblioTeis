@@ -11,6 +11,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
@@ -22,9 +23,11 @@ import com.example.biblioteisandroid.API.models.Book;
 import com.example.biblioteisandroid.API.repository.BookRepository;
 import com.example.biblioteisandroid.API.repository.ImageRepository;
 
+import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import okhttp3.ResponseBody;
 
@@ -90,13 +93,48 @@ public class Activity_books extends AppCompatActivity {
 
         @Override
         public void onBindViewHolder(@NonNull MyViewHolder holder, int position) {
+
             holder.textTitulo.setText(listaBusqueda.get(position).getTitle());
-            holder.imagenLibro.setImageBitmap(listaImagenes.get(position));
+            BookRepository.ApiCallback<ResponseBody> cback = new BookRepository.ApiCallback<ResponseBody>() {
+                @Override
+                public void onSuccess(ResponseBody result) {
+                    InputStream inputStream = result.byteStream();
+                    Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
+                    holder.imagenLibro.setImageBitmap(bitmap);
+                }
+
+                @Override
+                public void onFailure(Throwable t) {
+                    Toast.makeText(Activity_books.this, "Fallo", Toast.LENGTH_SHORT).show();
+                }
+            };
+            Book book = listaBusqueda.get(position);
+            if (!Objects.equals(book.getBookPicture(), "")){
+                ImageRepository ir = new ImageRepository();
+                ir.getImage(book.getBookPicture() , cback);
+            }
+            else{
+                holder.imagenLibro.setImageResource(R.drawable.problemas_tecnicos);
+            }
+
             holder.btnDetalles.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     System.out.println("Hola");
                     Intent intent = new Intent(v.getContext(), ActivityDetalles.class);
+                    holder.imagenLibro.setDrawingCacheEnabled(true);  // Habilita el cache de dibujo
+                    holder.imagenLibro.buildDrawingCache();  // Construye el cache de dibujo
+                    Bitmap bitmap = holder.imagenLibro.getDrawingCache();
+                    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+                    bitmap.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream);  // Convierte el bitmap a PNG
+                    byte[] byteArray = byteArrayOutputStream.toByteArray();  // Obtén el array de bytes
+                    intent.putExtra("imagen", byteArray);
+                    intent.putExtra("titulo", book.getTitle());
+                    intent.putExtra("autor", book.getAuthor());
+                    intent.putExtra("isbn", book.getIsbn());
+                    intent.putExtra("fecha", book.getPublishedDate());
+                    intent.putExtra("disponible", book.isAvailable());
+                    intent.putExtra("id",book.getId());
                     startActivity(intent);
                 }
             });
@@ -115,19 +153,7 @@ public class Activity_books extends AppCompatActivity {
         listaBusqueda.clear();
         BookRepository.ApiCallback<List<Book>> callback = new BookRepository.ApiCallback<List<Book>>() {
 
-            BookRepository.ApiCallback<ResponseBody> cback = new BookRepository.ApiCallback<ResponseBody>() {
-                @Override
-                public void onSuccess(ResponseBody result) {
-                    InputStream inputStream = result.byteStream();
-                    Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
-                    listaImagenes.add(bitmap);
-                }
 
-                @Override
-                public void onFailure(Throwable t) {
-
-                }
-            };
 
             @Override
             public void onSuccess(List<Book> result) {
@@ -135,18 +161,15 @@ public class Activity_books extends AppCompatActivity {
                     if (edtTitulo.getText().toString().isEmpty()){
                         if (edtAutor.getText().toString().equals(book.getAuthor())){
                             listaBusqueda.add(book);
-                            ir.getImage(book.getBookPicture() , cback);
                         }
                     }
                     else if (edtAutor.getText().toString().isEmpty()){
                         if (edtTitulo.getText().toString().equals(book.getTitle())){
                             listaBusqueda.add(book);
-                            ir.getImage(book.getBookPicture() , cback);
                         }
                     }
                     else if (edtTitulo.getText().toString().equals(book.getTitle()) && edtAutor.getText().toString().equals(book.getAuthor())){
                         listaBusqueda.add(book);
-                        ir.getImage(book.getBookPicture() , cback);
                     }
                 }
 

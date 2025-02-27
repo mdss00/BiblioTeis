@@ -4,9 +4,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
-import android.widget.ImageView;
-import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -14,66 +11,57 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
-import com.example.biblioteisandroid.API.models.User;
-import com.example.biblioteisandroid.API.repository.BookRepository;
-import com.example.biblioteisandroid.API.repository.UserRepository;
-
-import java.util.List;
-
 public class MainActivity extends AppCompatActivity {
 
-    TextView textError;
-    EditText edtNom, edtPass;
-    Button buttonLogin;
-    ImageView imgUser;
+    Button boton, botonLogIn, botonUser;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            return insets;
+        });
 
-        edtNom = findViewById(R.id.editNom);
-        edtPass = findViewById(R.id.editPass);
-        buttonLogin = findViewById(R.id.btnLogIn);
-        imgUser = findViewById(R.id.imgUser);
-        textError = findViewById(R.id.txtError);
-
-        buttonLogin.setOnClickListener(new View.OnClickListener() {
+        botonUser = findViewById(R.id.btnPerfil);
+        botonLogIn = findViewById(R.id.btnLoginIn);
+        boton = findViewById(R.id.btnIrBuscar);
+        if (SearchHolder.getInstance().getUser().getName() == null) {
+            botonUser.setEnabled(false);
+        }
+        else{
+            botonUser.setEnabled(true);
+        }
+        boton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                doLogin(v);
+                if (SearchHolder.getInstance().getUser().getName() == null) {
+                    Intent intent = new Intent(v.getContext(), LoginActivity.class);
+                    startActivity(intent);
+                }
+                else{
+                    Intent intent = new Intent(v.getContext(), Activity_books.class);
+                    startActivity(intent);
+                }
             }
         });
-    }
-
-    public void doLogin(View v) {
-        UserRepository ur = new UserRepository();
-
-        BookRepository.ApiCallback<List<User>> callback = new BookRepository.ApiCallback<List<User>>() {
+        botonLogIn.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onSuccess(List<User> result) {
-                boolean check = true;
-                for (User user : result){
-                    if (edtNom.getText().toString().equals(user.getName()) && edtPass.getText().toString().equals(user.getPasswordHash())){
-                        SearchHolder.getInstance().setUser(user);
-                        Intent intent = new Intent(v.getContext(), Activity_books.class);
-                        startActivity(intent);
-                        check = false;
-                    }
-                }
-                if (check){
-                    textError.setVisibility(View.VISIBLE);
-                }
-
+            public void onClick(View v) {
+                Intent intent = new Intent(v.getContext(), LoginActivity.class);
+                startActivity(intent);
             }
+        });
 
+        botonUser.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onFailure(Throwable t) {
-
+            public void onClick(View v) {
+                Intent intent = new Intent(v.getContext(), UserActivity.class);
+                startActivity(intent);
             }
-        };
-
-        ur.getUsers(callback);
+        });
     }
 }
