@@ -34,8 +34,8 @@ public class BookLendingRepository {
         });
     }
 
-    public void lendBook(BookLending lending, final BookRepository.ApiCallback<Boolean> callback) {
-        apiService.lendBook(lending).enqueue(new Callback<BookLending>() {
+    public void lendBook(int bookId, int userId, final BookRepository.ApiCallback<Boolean> callback) {
+        apiService.lendBook(bookId, userId).enqueue(new Callback<BookLending>() {
             @Override
             public void onResponse(Call<BookLending> call, Response<BookLending> response) {
                 callback.onSuccess(response.isSuccessful());

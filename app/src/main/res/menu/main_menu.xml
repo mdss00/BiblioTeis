@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Opción de Inicio -->
+    <item
+        android:id="@+id/menu_home"
+        android:title="Inicio"
+        android:titleTextColor="@android:color/black"
+        android:showAsAction="ifRoom" />
+
+    <!-- Opción de Buscar -->
+    <item
+        android:id="@+id/menu_search"
+        android:title="Buscar"
+        android:titleTextColor="@android:color/black"
+        android:showAsAction="ifRoom" />
+
+    <!-- Opción de Login -->
+    <item
+        android:id="@+id/menu_login"
+        android:title="Login"
+        android:titleTextColor="@android:color/black"
+        android:showAsAction="ifRoom" />
+
+    <!-- Opción de Mi Perfil -->
+    <item
+        android:id="@+id/menu_profile"
+        android:title="Mi Perfil"
+        android:titleTextColor="@android:color/black"
+        android:showAsAction="ifRoom" />
+
+</menu>

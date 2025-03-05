@@ -10,6 +10,8 @@ constraintlayout = "2.2.0"
 retrofit = "2.9.0"
 okhttp = "4.9.0"
 gson = "2.8.8"
+navigationFragment = "2.6.0"
+navigationUi = "2.6.0"
 
 [libraries]
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -22,6 +24,8 @@ constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayo
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
 okhttp = {module = "com.squareup.okhhtp3:okhttp", version.ref = "okhttp"}
 converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "retrofit" }
+navigation-fragment = { group = "androidx.navigation", name = "navigation-fragment", version.ref = "navigationFragment" }
+navigation-ui = { group = "androidx.navigation", name = "navigation-ui", version.ref = "navigationUi" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

@@ -5,36 +5,97 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity">
-
-    <Button
-        android:id="@+id/btnLoginIn"
-        android:layout_width="wrap_content"
+    tools:context=".MainActivity"
+    android:background="@color/amarillento">
+    <!-- Toolbar -->
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Log In"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:background="?android:attr/colorPrimary"
+        android:elevation="4dp"
+        app:titleTextColor="@color/black"
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+        tools:ignore="MissingConstraints" />
+
+    <ImageView
+        android:id="@+id/imgHobbit"
+        android:layout_width="125dp"
+        android:layout_height="125dp"
+        android:layout_marginStart="32dp"
+        android:layout_marginTop="24dp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/btnIrBuscar" />
+        app:layout_constraintTop_toBottomOf="@+id/textView4"
+        tools:srcCompat="@tools:sample/avatars" />
 
-    <Button
-        android:id="@+id/btnIrBuscar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+    <ImageView
+        android:id="@+id/imgBrujula"
+        android:layout_width="125dp"
+        android:layout_height="125dp"
+        android:layout_marginStart="32dp"
+        android:layout_marginTop="24dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/imgHobbit"
+        tools:srcCompat="@tools:sample/avatars" />
+
+    <ImageView
+        android:id="@+id/imgHarry"
+        android:layout_width="125dp"
+        android:layout_height="125dp"
+        android:layout_marginStart="32dp"
+        android:layout_marginTop="24dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/imgBrujula"
+        tools:srcCompat="@tools:sample/avatars" />
+
+    <TextView
+        android:id="@+id/txtHobbit"
+        android:layout_width="133dp"
+        android:layout_height="57dp"
+        android:layout_marginTop="24dp"
+        android:text="El Hobbit"
+        android:visibility="visible"
+        app:layout_constraintStart_toEndOf="@+id/imgHobbit"
+        app:layout_constraintTop_toBottomOf="@+id/textView4" />
+
+    <TextView
+        android:id="@+id/txtBrujula"
+        android:layout_width="135dp"
+        android:layout_height="53dp"
         android:layout_marginTop="90dp"
-        android:text="Buscar"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:text="La Brújula Dorada"
+        app:layout_constraintStart_toEndOf="@+id/imgBrujula"
+        app:layout_constraintTop_toBottomOf="@+id/txtHobbit" />
 
-    <Button
-        android:id="@+id/btnPerfil"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Mi Perfil"
-        app:layout_constraintBottom_toTopOf="@+id/btnLoginIn"
+    <TextView
+        android:id="@+id/txtHarry"
+        android:layout_width="139dp"
+        android:layout_height="45dp"
+        android:layout_marginTop="95dp"
+        android:text="Harry Potter"
+        app:layout_constraintStart_toEndOf="@+id/imgHarry"
+        app:layout_constraintTop_toBottomOf="@+id/txtBrujula" />
+
+    <TextView
+        android:id="@+id/textView4"
+        android:layout_width="122dp"
+        android:layout_height="44dp"
+        android:layout_marginTop="16dp"
+        android:text="Novedades"
+        android:gravity="center"
+        android:textSize="20dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/btnIrBuscar"
-        app:layout_constraintVertical_bias="0.497" />
+        app:layout_constraintTop_toBottomOf="@+id/textView5" />
+
+    <TextView
+        android:id="@+id/textView5"
+        android:layout_width="378dp"
+        android:layout_height="80dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:text="Bienvenido a BiblioTeis"
+        android:textSize="25dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/toolbar" />
 </androidx.constraintlayout.widget.ConstraintLayout>
