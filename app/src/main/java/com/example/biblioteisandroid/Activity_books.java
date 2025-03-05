@@ -84,8 +84,6 @@ public class Activity_books extends AppCompatActivity {
             public MyViewHolder(@NonNull View itemView) {
                 super(itemView);
                 textTitulo = itemView.findViewById(R.id.txtTitulo);
-                textNumCopias = itemView.findViewById(R.id.txtNumCopias);
-                textCopiasDisponibles = itemView.findViewById(R.id.txtCopiasDisp);
                 imagenLibro = itemView.findViewById(R.id.imgBook);
                 btnDetalles = itemView.findViewById(R.id.btnDetalles);
 

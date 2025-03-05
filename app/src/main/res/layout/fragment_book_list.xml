@@ -42,24 +42,5 @@
             app:layout_constraintTop_toBottomOf="@+id/txtTitulo"
             app:layout_constraintVertical_bias="1.0" />
 
-        <TextView
-            android:id="@+id/txtNumCopias"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="20dp"
-            android:layout_marginTop="16dp"
-            android:text="TextView"
-            app:layout_constraintStart_toEndOf="@+id/imgBook"
-            app:layout_constraintTop_toBottomOf="@+id/txtTitulo" />
-
-        <TextView
-            android:id="@+id/txtCopiasDisp"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="25dp"
-            android:layout_marginTop="16dp"
-            android:text="TextView"
-            app:layout_constraintStart_toEndOf="@+id/txtNumCopias"
-            app:layout_constraintTop_toBottomOf="@+id/txtTitulo" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 </FrameLayout>
