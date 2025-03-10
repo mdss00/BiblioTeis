@@ -1,6 +1,7 @@
 package com.example.biblioteisandroid;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -27,6 +28,8 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.security.crypto.EncryptedSharedPreferences;
+import androidx.security.crypto.MasterKey;
 
 import com.example.biblioteisandroid.API.models.Book;
 import com.example.biblioteisandroid.API.models.BookLending;
@@ -35,7 +38,9 @@ import com.example.biblioteisandroid.API.repository.BookLendingRepository;
 import com.example.biblioteisandroid.API.repository.BookRepository;
 import com.example.biblioteisandroid.API.repository.ImageRepository;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.security.GeneralSecurityException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -52,12 +57,12 @@ public class UserActivity extends AppCompatActivity {
     RecyclerView rvBookUserList;
     TextView textNombre, textEmail, textFecha;
     Button buttonVolver;
-    User usuarioSesion = SearchHolder.getInstance().getUser();
 
     List<BookLending> listaLibros = new ArrayList<>();
 
     List<Book> listaParaImagenes = new ArrayList<>();
 
+    SharedPreferences preferences;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,11 +75,37 @@ public class UserActivity extends AppCompatActivity {
             return insets;
         });
 
+        MasterKey masterKey = null;
+        try {
+            masterKey = new MasterKey.Builder(this)
+                    .setKeyScheme(MasterKey.KeyScheme.AES256_GCM) // Usando AES de 256 bits.
+                    .build();
+        } catch (GeneralSecurityException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        // Inicializar EncryptedSharedPreferences.
+        try {
+            preferences = EncryptedSharedPreferences.create(
+                    this, // Nombre del archivo SharedPreferences
+                    "SesionUsuario", // MasterKey para cifrado
+                    masterKey, // Contexto
+                    EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV, // Cifrado de claves
+                    EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM // Cifrado de valores
+            );
+        } catch (GeneralSecurityException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         // Configurar el Toolbar
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        getSupportActionBar().setTitle("BibliotecaTeis");
 
-        String fechaOriginal = usuarioSesion.getDateJoined();
+        String fechaOriginal = preferences.getString("fecha", "");
 
         // Definir el formato de la fecha original
         SimpleDateFormat formatoEntrada = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
@@ -100,8 +131,8 @@ public class UserActivity extends AppCompatActivity {
         rvBookUserList.setAdapter(new MyAdapter());
 
 
-        textNombre.setText(usuarioSesion.getName());
-        textEmail.setText(usuarioSesion.getEmail());
+        textNombre.setText(preferences.getString("nombre", ""));
+        textEmail.setText(preferences.getString("email", ""));
         textFecha.setText(fechaFormateada);
         buttonVolver.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -137,7 +168,7 @@ public class UserActivity extends AppCompatActivity {
             @Override
             public void onSuccess(List<BookLending> result) {
                 for (BookLending bookLending : result){
-                    if (bookLending.getUserId() == SearchHolder.getInstance().getUser().getId() && bookLending.getReturnDate() == null){
+                    if (bookLending.getUserId() == preferences.getInt("id_usuario", 0) && bookLending.getReturnDate() == null){
                         listaLibros.add(bookLending);
                     }
                 }
@@ -245,40 +276,43 @@ public class UserActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.menu_home) {
-            Toast.makeText(this, "Inicio", Toast.LENGTH_SHORT).show();
-            Intent intent = new Intent(this, MainActivity.class);
+            Intent intent = new Intent(UserActivity.this, MainActivity.class);
             startActivity(intent);
             return true;
         }
         else if (item.getItemId() == R.id.menu_search) {
-            Toast.makeText(this, "Buscar", Toast.LENGTH_SHORT).show();
-            if (SearchHolder.getInstance().getUser().getName() == null) {
-                Intent intent = new Intent(this, LoginActivity.class);
+            if (preferences.getString("nombre", "No definido").equals("No definido")) {
+                Intent intent = new Intent(UserActivity.this, LoginActivity.class);
                 startActivity(intent);
             }
             else{
-                Intent intent = new Intent(this, Activity_books.class);
+                Intent intent = new Intent(UserActivity.this, Activity_books.class);
                 startActivity(intent);
             }
             return true;
         }
         else if (item.getItemId() == R.id.menu_login) {
-            Toast.makeText(this, "Login", Toast.LENGTH_SHORT).show();
-            Intent intent = new Intent(this, LoginActivity.class);
+            Intent intent = new Intent(UserActivity.this, LoginActivity.class);
             startActivity(intent);
             return true;
         }
         else if (item.getItemId() == R.id.menu_profile) {
-            Toast.makeText(this, "Mi Perfil", Toast.LENGTH_SHORT).show();
-            if (SearchHolder.getInstance().getUser().getName() == null) {
-                Intent intent = new Intent(this, LoginActivity.class);
+            if (preferences.getString("nombre", "No definido").equals("No definido")) {
+                Intent intent = new Intent(UserActivity.this, LoginActivity.class);
                 startActivity(intent);
             }
             else{
-                Intent intent = new Intent(this, UserActivity.class);
+                Intent intent = new Intent(UserActivity.this, UserActivity.class);
                 startActivity(intent);
             }
             return true;
+        }
+        else if (item.getItemId() == R.id.cerrar){
+            SharedPreferences.Editor editor = preferences.edit();
+            editor.clear();
+            editor.apply();
+            Intent intent = new Intent(UserActivity.this, MainActivity.class);
+            startActivity(intent);
         }
         return true;
     }

@@ -15,8 +15,8 @@
         android:layout_height="wrap_content"
         android:background="?android:attr/colorPrimary"
         android:elevation="4dp"
+        android:title="BibliotecaTeis"
         app:layout_constraintTop_toTopOf="parent"
-        app:popupTheme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
         tools:ignore="MissingConstraints" />
 
     <EditText

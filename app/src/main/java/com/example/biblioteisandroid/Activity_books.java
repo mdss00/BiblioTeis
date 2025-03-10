@@ -1,6 +1,7 @@
 package com.example.biblioteisandroid;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
@@ -19,15 +20,21 @@ import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.security.crypto.EncryptedSharedPreferences;
+import androidx.security.crypto.MasterKey;
 
 import com.example.biblioteisandroid.API.models.Book;
 import com.example.biblioteisandroid.API.repository.BookRepository;
 import com.example.biblioteisandroid.API.repository.ImageRepository;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -42,23 +49,63 @@ public class Activity_books extends AppCompatActivity {
     EditText edtAutor;
     List<Book> listaBusqueda = new ArrayList<>();
     List<Bitmap> listaImagenes = new ArrayList<Bitmap>();
+    Activity_booksViewModel  viewModel;
+
+    SharedPreferences preferences;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_books);
-
+        MyAdapter adapter = new MyAdapter();
         rvBooks = findViewById(R.id.rvBookList);
         rvBooks.setLayoutManager(new LinearLayoutManager(this));
-        rvBooks.setAdapter(new MyAdapter());
+        rvBooks.setAdapter(adapter);
         btnBuscar = findViewById(R.id.btnBusqueda);
         edtTitulo = findViewById(R.id.buscaNombre);
         edtAutor = findViewById(R.id.buscaAutor);
+        MasterKey masterKey = null;
+        try {
+            masterKey = new MasterKey.Builder(this)
+                    .setKeyScheme(MasterKey.KeyScheme.AES256_GCM) // Usando AES de 256 bits.
+                    .build();
+        } catch (GeneralSecurityException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
+        // Inicializar EncryptedSharedPreferences.
+        try {
+            preferences = EncryptedSharedPreferences.create(
+                    this, // Nombre del archivo SharedPreferences
+                    "SesionUsuario", // MasterKey para cifrado
+                    masterKey, // Contexto
+                    EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV, // Cifrado de claves
+                    EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM // Cifrado de valores
+            );
+        } catch (GeneralSecurityException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        viewModel = new ViewModelProvider(this).get(Activity_booksViewModel.class);
+        viewModel.loadBooks(edtTitulo.getText().toString(), edtAutor.getText().toString());
+        viewModel.getListaLibros().observe(this, new Observer<List<Book>>() {
+            @Override
+            public void onChanged(List<Book> books) {
+                if (books != null) {
+                    // Actualizar el adaptador con la nueva lista
+                    adapter.setBooks(books); // Este método actualiza la lista en el adaptador
+                }
+            }
+        });
         // Configurar el Toolbar
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        getSupportActionBar().setTitle("BibliotecaTeis");
 
         btnBuscar.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -66,17 +113,18 @@ public class Activity_books extends AppCompatActivity {
                 buscarLibro();
             }
         });
-        buscarLibro();
-
     }
     // Adaptador para RecyclerView
     class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> {
+        List<Book> bookList = new ArrayList<>();
 
+        public void setBooks(List<Book> books){
+            bookList = books;
+            notifyDataSetChanged();
+        }
         // ViewHolder interno
         class MyViewHolder extends RecyclerView.ViewHolder {
             TextView textTitulo;
-            TextView textNumCopias;
-            TextView textCopiasDisponibles;
             ImageView imagenLibro;
             Button btnDetalles;
 
@@ -100,7 +148,7 @@ public class Activity_books extends AppCompatActivity {
         @Override
         public void onBindViewHolder(@NonNull MyViewHolder holder, int position) {
 
-            holder.textTitulo.setText(listaBusqueda.get(position).getTitle());
+            holder.textTitulo.setText(bookList.get(position).getTitle());
             BookRepository.ApiCallback<ResponseBody> cback = new BookRepository.ApiCallback<ResponseBody>() {
                 @Override
                 public void onSuccess(ResponseBody result) {
@@ -114,7 +162,7 @@ public class Activity_books extends AppCompatActivity {
                     Toast.makeText(Activity_books.this, "Fallo", Toast.LENGTH_SHORT).show();
                 }
             };
-            Book book = listaBusqueda.get(position);
+            Book book = bookList.get(position);
             if (!Objects.equals(book.getBookPicture(), "")){
                 ImageRepository ir = new ImageRepository();
                 ir.getImage(book.getBookPicture() , cback);
@@ -126,7 +174,6 @@ public class Activity_books extends AppCompatActivity {
             holder.btnDetalles.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    System.out.println("Hola");
                     Intent intent = new Intent(v.getContext(), ActivityDetalles.class);
                     holder.imagenLibro.setDrawingCacheEnabled(true);  // Habilita el cache de dibujo
                     holder.imagenLibro.buildDrawingCache();  // Construye el cache de dibujo
@@ -148,58 +195,12 @@ public class Activity_books extends AppCompatActivity {
 
         @Override
         public int getItemCount() {
-            return listaBusqueda.size();
+            return bookList.size();
         }
     }
 
     public void buscarLibro() {
-        BookRepository br = new BookRepository();
-        ImageRepository ir = new ImageRepository();
-
-        listaBusqueda.clear();
-        BookRepository.ApiCallback<List<Book>> callback = new BookRepository.ApiCallback<List<Book>>() {
-
-            @Override
-            public void onSuccess(List<Book> result) {
-                for (Book book : result){
-                    if (edtTitulo.getText().toString().isEmpty() && edtAutor.getText().toString().isEmpty()){
-                        listaBusqueda.add(book);
-                    }
-                    else if (edtTitulo.getText().toString().isEmpty()){
-                        if (edtAutor.getText().toString().equals(book.getAuthor())){
-                            listaBusqueda.add(book);
-                        }
-                    }
-                    else if (edtAutor.getText().toString().isEmpty()){
-                        if (edtTitulo.getText().toString().equals(book.getTitle())){
-                            listaBusqueda.add(book);
-                        }
-                    }
-                    else if (edtTitulo.getText().toString().equals(book.getTitle()) && edtAutor.getText().toString().equals(book.getAuthor())){
-                        listaBusqueda.add(book);
-                    }
-                }
-
-                // Notificar al adaptador que los datos han cambiado
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        // Notificar al adaptador que la lista ha sido actualizada
-                        rvBooks.getAdapter().notifyDataSetChanged();
-                    }
-                });
-
-            }
-
-            @Override
-            public void onFailure(Throwable t) {
-
-            }
-        };
-
-
-
-        br.getBooks(callback);
+        viewModel.loadBooks(edtTitulo.getText().toString(), edtAutor.getText().toString());
     }
 
     // Inflar el menú
@@ -213,40 +214,43 @@ public class Activity_books extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.menu_home) {
-            Toast.makeText(this, "Inicio", Toast.LENGTH_SHORT).show();
-            Intent intent = new Intent(this, MainActivity.class);
+            Intent intent = new Intent(Activity_books.this, MainActivity.class);
             startActivity(intent);
             return true;
         }
         else if (item.getItemId() == R.id.menu_search) {
-            Toast.makeText(this, "Buscar", Toast.LENGTH_SHORT).show();
-            if (SearchHolder.getInstance().getUser().getName() == null) {
-                Intent intent = new Intent(this, LoginActivity.class);
+            if (preferences.getString("nombre", "No definido").equals("No definido")) {
+                Intent intent = new Intent(Activity_books.this, LoginActivity.class);
                 startActivity(intent);
             }
             else{
-                Intent intent = new Intent(this, Activity_books.class);
+                Intent intent = new Intent(Activity_books.this, Activity_books.class);
                 startActivity(intent);
             }
             return true;
         }
         else if (item.getItemId() == R.id.menu_login) {
-            Toast.makeText(this, "Login", Toast.LENGTH_SHORT).show();
-            Intent intent = new Intent(this, LoginActivity.class);
+            Intent intent = new Intent(Activity_books.this, LoginActivity.class);
             startActivity(intent);
             return true;
         }
         else if (item.getItemId() == R.id.menu_profile) {
-            Toast.makeText(this, "Mi Perfil", Toast.LENGTH_SHORT).show();
-            if (SearchHolder.getInstance().getUser().getName() == null) {
-                Intent intent = new Intent(this, LoginActivity.class);
+            if (preferences.getString("nombre", "No definido").equals("No definido")) {
+                Intent intent = new Intent(Activity_books.this, LoginActivity.class);
                 startActivity(intent);
             }
             else{
-                Intent intent = new Intent(this, UserActivity.class);
+                Intent intent = new Intent(Activity_books.this, UserActivity.class);
                 startActivity(intent);
             }
             return true;
+        }
+        else if (item.getItemId() == R.id.cerrar){
+            SharedPreferences.Editor editor = preferences.edit();
+            editor.clear();
+            editor.apply();
+            Intent intent = new Intent(Activity_books.this, MainActivity.class);
+            startActivity(intent);
         }
         return true;
     }

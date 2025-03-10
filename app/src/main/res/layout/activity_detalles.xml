@@ -16,7 +16,7 @@
         android:layout_height="wrap_content"
         android:background="?android:attr/colorPrimary"
         android:elevation="4dp"
-        app:popupTheme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+        android:title="BibliotecaTeis"
         tools:ignore="MissingConstraints" />
 
     <Button

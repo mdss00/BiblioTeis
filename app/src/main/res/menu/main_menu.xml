@@ -29,4 +29,11 @@
         android:titleTextColor="@android:color/black"
         android:showAsAction="ifRoom" />
 
+    <!-- Opción de Cerrar Sesión -->
+    <item
+        android:id="@+id/cerrar"
+        android:title="Cerrar Sesión"
+        android:titleTextColor="@color/rojo"
+        android:showAsAction="ifRoom" />
+
 </menu>

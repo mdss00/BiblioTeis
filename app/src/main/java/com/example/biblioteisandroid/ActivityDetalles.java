@@ -4,6 +4,7 @@ import static android.view.View.INVISIBLE;
 import static android.view.View.VISIBLE;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Build;
@@ -23,12 +24,16 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.security.crypto.EncryptedSharedPreferences;
+import androidx.security.crypto.MasterKey;
 
 import com.example.biblioteisandroid.API.models.Book;
 import com.example.biblioteisandroid.API.models.BookLending;
 import com.example.biblioteisandroid.API.repository.BookLendingRepository;
 import com.example.biblioteisandroid.API.repository.BookRepository;
 
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -46,6 +51,7 @@ public class ActivityDetalles extends AppCompatActivity {
     RadioButton radioDisp;
     Integer idBook;
     Button botonPrestamo, botonDevolver;
+    SharedPreferences preferences;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,11 +63,35 @@ public class ActivityDetalles extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+        MasterKey masterKey = null;
+        try {
+            masterKey = new MasterKey.Builder(this)
+                    .setKeyScheme(MasterKey.KeyScheme.AES256_GCM) // Usando AES de 256 bits.
+                    .build();
+        } catch (GeneralSecurityException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
+        // Inicializar EncryptedSharedPreferences.
+        try {
+            preferences = EncryptedSharedPreferences.create(
+                    this, // Nombre del archivo SharedPreferences
+                    "SesionUsuario", // MasterKey para cifrado
+                    masterKey, // Contexto
+                    EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV, // Cifrado de claves
+                    EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM // Cifrado de valores
+            );
+        } catch (GeneralSecurityException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         // Configurar el Toolbar
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
+        getSupportActionBar().setTitle("BibliotecaTeis");
         imgDetalle = findViewById(R.id.imgFotoDetalles);
         txtTitle = findViewById(R.id.txtTitleDetalle);
         txtAuthor = findViewById(R.id.txtAut);
@@ -251,6 +281,13 @@ public class ActivityDetalles extends AppCompatActivity {
                 startActivity(intent);
             }
             return true;
+        }
+        else if (item.getItemId() == R.id.cerrar){
+            SharedPreferences.Editor editor = preferences.edit();
+            editor.clear();
+            editor.apply();
+            Intent intent = new Intent(ActivityDetalles.this, MainActivity.class);
+            startActivity(intent);
         }
         return true;
     }
