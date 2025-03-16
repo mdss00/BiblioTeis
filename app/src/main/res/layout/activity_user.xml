@@ -10,6 +10,25 @@
     android:background="@color/amarillento">
     <!-- Toolbar -->
 
+    <TextView
+        android:id="@+id/textView3"
+        android:layout_width="118dp"
+        android:layout_height="26dp"
+        android:layout_marginTop="24dp"
+        android:text="Nombre:"
+        app:layout_constraintEnd_toStartOf="@+id/txtNameUser"
+        app:layout_constraintTop_toBottomOf="@+id/imageViewUser" />
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="118dp"
+        android:layout_height="26dp"
+        android:layout_marginTop="24dp"
+        android:layout_marginEnd="4dp"
+        android:text="Fecha registro:"
+        app:layout_constraintEnd_toStartOf="@+id/txtFechaJoin"
+        app:layout_constraintTop_toBottomOf="@+id/textView" />
+
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
@@ -35,30 +54,27 @@
         android:id="@+id/txtNameUser"
         android:layout_width="228dp"
         android:layout_height="23dp"
-        android:layout_marginStart="90dp"
         android:layout_marginTop="24dp"
         android:text="TextView"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/imageViewUser" />
 
     <TextView
         android:id="@+id/txtEmailUser"
         android:layout_width="229dp"
         android:layout_height="23dp"
-        android:layout_marginStart="90dp"
         android:layout_marginTop="24dp"
         android:text="TextView"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/txtNameUser" />
 
     <TextView
         android:id="@+id/txtFechaJoin"
         android:layout_width="226dp"
         android:layout_height="22dp"
-        android:layout_marginStart="90dp"
         android:layout_marginTop="24dp"
         android:text="TextView"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/txtEmailUser" />
 
     <Button
@@ -80,5 +96,14 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/txtFechaJoin" />
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="118dp"
+        android:layout_height="21dp"
+        android:layout_marginTop="24dp"
+        android:text="Email:"
+        app:layout_constraintEnd_toStartOf="@+id/txtEmailUser"
+        app:layout_constraintTop_toBottomOf="@+id/textView3" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

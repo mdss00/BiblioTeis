@@ -11,6 +11,8 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
 import androidx.security.crypto.EncryptedSharedPreferences;
 import androidx.security.crypto.MasterKey;
 
@@ -24,6 +26,7 @@ import androidx.core.view.WindowInsetsCompat;
 import com.example.biblioteisandroid.API.models.User;
 import com.example.biblioteisandroid.API.repository.BookRepository;
 import com.example.biblioteisandroid.API.repository.UserRepository;
+import com.example.biblioteisandroid.auxiliar.Auxiliar;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
@@ -31,8 +34,14 @@ import java.util.List;
 
 public class LoginActivity extends AppCompatActivity {
 
+    public static final String NOMBRE = "nombre";
+    public static final String EMAIL = "email";
+    public static final String IS_LOGGED = "isLogged";
+    public static final String FECHA = "fecha";
+    public static final String ID_USUARIO = "id_usuario";
     TextView textError;
     EditText edtNom, edtPass;
+    Auxiliar auxiliar;
     Button buttonLogin;
 
     SharedPreferences preferences;
@@ -72,9 +81,7 @@ public class LoginActivity extends AppCompatActivity {
                     EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV, // Cifrado de claves
                     EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM // Cifrado de valores
                     );
-        } catch (GeneralSecurityException e) {
-            throw new RuntimeException(e);
-        } catch (IOException e) {
+        } catch (GeneralSecurityException | IOException e) {
             throw new RuntimeException(e);
         }
         buttonLogin.setOnClickListener(new View.OnClickListener() {
@@ -83,10 +90,8 @@ public class LoginActivity extends AppCompatActivity {
                 doLogin(v);
             }
         });
-        // Configurar el Toolbar
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        getSupportActionBar().setTitle("BibliotecaTeis");
+        auxiliar = new Auxiliar(this);
+        auxiliar.setUpToolbar();
     }
 
     public void doLogin(View v) {
@@ -99,11 +104,11 @@ public class LoginActivity extends AppCompatActivity {
                 for (User user : result){
                     if (edtNom.getText().toString().equals(user.getName()) && edtPass.getText().toString().equals(user.getPasswordHash())){
                         SharedPreferences.Editor editor = preferences.edit();
-                        editor.putString("nombre", user.getName());  // Guardar nombre de usuario
-                        editor.putString("email", user.getEmail());  // Guardar email
-                        editor.putBoolean("isLogged", true);  // Indicar que está logeado
-                        editor.putString("fecha", user.getDateJoined());
-                        editor.putInt("id_usuario", user.getId());
+                        editor.putString(NOMBRE, user.getName());  // Guardar nombre de usuario
+                        editor.putString(EMAIL, user.getEmail());  // Guardar email
+                        editor.putBoolean(IS_LOGGED, true);  // Indicar que está logeado
+                        editor.putString(FECHA, user.getDateJoined());
+                        editor.putInt(ID_USUARIO, user.getId());
                         editor.apply();
                         Intent intent = new Intent(v.getContext(), MainActivity.class);
                         startActivity(intent);
@@ -125,62 +130,15 @@ public class LoginActivity extends AppCompatActivity {
         ur.getUsers(callback);
     }
 
-    // Inflar el menú
+    // Inflater del menú en la Toolbar
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.main_menu, menu);
-        MenuItem logout = menu.findItem(R.id.cerrar);
-        if (preferences.getString("nombre", "No definido").equals("No definido")){
-            logout.setVisible(false);
-        }
-        else{
-            logout.setVisible(true);
-        }// Inflar el archivo de menú
-        return true;
+        return auxiliar.createMenu(menu);
     }
 
-    // Manejar clics en los ítems del menú
+    // listeners de las opciones de la Toolbar
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.menu_home) {
-            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-            startActivity(intent);
-            return true;
-        }
-        else if (item.getItemId() == R.id.menu_search) {
-            if (preferences.getString("nombre", "No definido").equals("No definido")) {
-                Intent intent = new Intent(LoginActivity.this, LoginActivity.class);
-                startActivity(intent);
-            }
-            else{
-                Intent intent = new Intent(LoginActivity.this, Activity_books.class);
-                startActivity(intent);
-            }
-            return true;
-        }
-        else if (item.getItemId() == R.id.menu_login) {
-            Intent intent = new Intent(LoginActivity.this, LoginActivity.class);
-            startActivity(intent);
-            return true;
-        }
-        else if (item.getItemId() == R.id.menu_profile) {
-            if (preferences.getString("nombre", "No definido").equals("No definido")) {
-                Intent intent = new Intent(LoginActivity.this, LoginActivity.class);
-                startActivity(intent);
-            }
-            else{
-                Intent intent = new Intent(LoginActivity.this, UserActivity.class);
-                startActivity(intent);
-            }
-            return true;
-        }
-        else if (item.getItemId() == R.id.cerrar){
-            SharedPreferences.Editor editor = preferences.edit();
-            editor.clear();
-            editor.apply();
-            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-            startActivity(intent);
-        }
-        return true;
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        return auxiliar.opcionesMenu(item);
     }
 }

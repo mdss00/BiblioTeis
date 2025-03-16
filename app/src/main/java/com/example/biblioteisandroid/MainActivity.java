@@ -23,6 +23,8 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.security.crypto.EncryptedSharedPreferences;
 import androidx.security.crypto.MasterKey;
 
+import com.example.biblioteisandroid.auxiliar.Auxiliar;
+
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 
@@ -30,7 +32,7 @@ public class MainActivity extends AppCompatActivity {
 
     Button boton, botonLogIn, botonUser;
     ImageView imagenHarry, imagenHobbit, imagenBrujula;
-
+    Auxiliar auxiliar;
     SharedPreferences preferences;
 
     @Override
@@ -71,122 +73,24 @@ public class MainActivity extends AppCompatActivity {
         imagenBrujula = findViewById(R.id.imgBrujula);
         imagenHarry = findViewById(R.id.imgHarry);
         imagenHobbit = findViewById(R.id.imgHobbit);
-        registerForContextMenu(imagenBrujula);
         // Configurar el Toolbar
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar); // Establecer el toolbar como ActionBar
-        getSupportActionBar().setTitle("BibliotecaTeis");
+        auxiliar = new Auxiliar(this);
+        auxiliar.setUpToolbar();
         imagenHobbit.setImageResource(R.drawable.hobbitp);
         imagenBrujula.setImageResource(R.drawable.brujulap);
         imagenHarry.setImageResource(R.drawable.harryp);
 
-
-        //Seteamos el menu en el toolbar
-        addMenuProvider(new MenuProvider() {
-            @Override
-            public void onCreateMenu(@NonNull Menu menu, @NonNull MenuInflater menuInflater) {
-                menuInflater.inflate( R.menu.main_menu, menu);
-                MenuItem logout = menu.findItem(R.id.cerrar);
-                if (preferences.getString("nombre", "No definido").equals("No definido")){
-                    logout.setVisible(false);
-                }
-                else{
-                    logout.setVisible(true);
-                }
-
-            }
-
-            @Override
-            public boolean onMenuItemSelected(@NonNull MenuItem item) {
-                if (item.getItemId() == R.id.menu_home) {
-                    Intent intent = new Intent(MainActivity.this, MainActivity.class);
-                    startActivity(intent);
-                    return true;
-                }
-                else if (item.getItemId() == R.id.menu_search) {
-                    if (preferences.getString("nombre", "No definido").equals("No definido")) {
-                        Intent intent = new Intent(MainActivity.this, LoginActivity.class);
-                        startActivity(intent);
-                    }
-                    else{
-                        Intent intent = new Intent(MainActivity.this, Activity_books.class);
-                        startActivity(intent);
-                    }
-                    return true;
-                }
-                else if (item.getItemId() == R.id.menu_login) {
-                    Intent intent = new Intent(MainActivity.this, LoginActivity.class);
-                    startActivity(intent);
-                    return true;
-                }
-                else if (item.getItemId() == R.id.menu_profile) {
-                    if (preferences.getString("nombre", "No definido").equals("No definido")) {
-                        Intent intent = new Intent(MainActivity.this, LoginActivity.class);
-                        startActivity(intent);
-                    }
-                    else{
-                        Intent intent = new Intent(MainActivity.this, UserActivity.class);
-                        startActivity(intent);
-                    }
-                    return true;
-                }
-                else if (item.getItemId() == R.id.cerrar){
-                    SharedPreferences.Editor editor = preferences.edit();
-                    editor.clear();
-                    editor.apply();
-                    Intent intent = new Intent(MainActivity.this, MainActivity.class);
-                    startActivity(intent);
-                }
-                return true;
-            }
-        });
+    }
+    // Inflater del menú en la Toolbar
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        return auxiliar.createMenu(menu);
     }
 
+    // listeners de las opciones de la Toolbar
     @Override
-    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
-        super.onCreateContextMenu(menu, v, menuInfo);
-
-        // Verificar qué vista activó el contexto
-        if (v.getId() == R.id.imgBrujula) {
-            // Inflar el menú de contexto desde un recurso XML
-            getMenuInflater().inflate(R.menu.main_menu, menu); // Definimos el menú en un archivo XML
-        }
-    }
-    @Override
-    public boolean onContextItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.menu_home) {
-            Intent intent = new Intent(MainActivity.this, MainActivity.class);
-            startActivity(intent);
-            return true;
-        }
-        else if (item.getItemId() == R.id.menu_search) {
-            if (preferences.getString("nombre", "No definido").equals("No definido")) {
-                Intent intent = new Intent(MainActivity.this, LoginActivity.class);
-                startActivity(intent);
-            }
-            else{
-                Intent intent = new Intent(MainActivity.this, Activity_books.class);
-                startActivity(intent);
-            }
-            return true;
-        }
-        else if (item.getItemId() == R.id.menu_login) {
-            Intent intent = new Intent(MainActivity.this, LoginActivity.class);
-            startActivity(intent);
-            return true;
-        }
-        else if (item.getItemId() == R.id.menu_profile) {
-            if (preferences.getString("nombre", "No definido").equals("No definido")) {
-                Intent intent = new Intent(MainActivity.this, LoginActivity.class);
-                startActivity(intent);
-            }
-            else{
-                Intent intent = new Intent(MainActivity.this, UserActivity.class);
-                startActivity(intent);
-            }
-            return true;
-        }
-        return true;
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        return auxiliar.opcionesMenu(item);
     }
 
 }

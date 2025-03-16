@@ -5,6 +5,8 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     tools:context=".FragmentUserBooks"
+    android:clickable="true"
+    android:focusable="true"
     android:background="@color/amarillento">
 
     <!-- TODO: Update blank fragment layout -->
@@ -39,5 +41,16 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/imgLibroUser"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/btnDetallesUser"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="32dp"
+        android:layout_marginTop="16dp"
+        android:text="Detalles"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/imgLibroUser"
+        app:layout_constraintTop_toBottomOf="@+id/txtDevuelveFechaUser" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

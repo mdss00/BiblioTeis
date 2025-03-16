@@ -9,6 +9,9 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -19,6 +22,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.graphics.Insets;
@@ -31,6 +35,7 @@ import com.example.biblioteisandroid.API.models.Book;
 import com.example.biblioteisandroid.API.models.BookLending;
 import com.example.biblioteisandroid.API.repository.BookLendingRepository;
 import com.example.biblioteisandroid.API.repository.BookRepository;
+import com.example.biblioteisandroid.auxiliar.Auxiliar;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
@@ -50,6 +55,7 @@ public class ActivityDetalles extends AppCompatActivity {
     TextView txtTitle, txtAuthor, txtFechaPubli, txtISBN, textReturnDate;
     RadioButton radioDisp;
     Integer idBook;
+    Auxiliar auxiliar;
     Button botonPrestamo, botonDevolver;
     SharedPreferences preferences;
 
@@ -89,9 +95,8 @@ public class ActivityDetalles extends AppCompatActivity {
             throw new RuntimeException(e);
         }
         // Configurar el Toolbar
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        getSupportActionBar().setTitle("BibliotecaTeis");
+        auxiliar = new Auxiliar(this);
+        auxiliar.setUpToolbar();
         imgDetalle = findViewById(R.id.imgFotoDetalles);
         txtTitle = findViewById(R.id.txtTitleDetalle);
         txtAuthor = findViewById(R.id.txtAut);
@@ -133,6 +138,7 @@ public class ActivityDetalles extends AppCompatActivity {
             radioDisp.setText(DISPONIBLE);
             radioDisp.setChecked(true);
             botonPrestamo.setEnabled(true);
+            textReturnDate.setText("");
         }
         else{
             radioDisp.setText(NO_DISPONIBLE);
@@ -147,7 +153,6 @@ public class ActivityDetalles extends AppCompatActivity {
                 radioDisp.setText(NO_DISPONIBLE);
                 radioDisp.setChecked(false);
                 botonPrestamo.setEnabled(false);
-                fechaDevolucion();
                 botonDevolver.setVisibility(VISIBLE);
             }
         });
@@ -159,7 +164,7 @@ public class ActivityDetalles extends AppCompatActivity {
                 radioDisp.setText(DISPONIBLE);
                 radioDisp.setChecked(true);
                 botonPrestamo.setEnabled(true);
-                textReturnDate.setVisibility(INVISIBLE);
+                textReturnDate.setText("");
                 botonDevolver.setVisibility(INVISIBLE);
             }
         });
@@ -189,7 +194,7 @@ public class ActivityDetalles extends AppCompatActivity {
         BookRepository.ApiCallback<Boolean> callback = new BookRepository.ApiCallback<Boolean>() {
             @Override
             public void onSuccess(Boolean result) {
-
+                fechaDevolucion();
             }
 
             @Override
@@ -198,15 +203,16 @@ public class ActivityDetalles extends AppCompatActivity {
             }
         };
 
-        bookLendingRepository.lendBook(SearchHolder.getInstance().getUser().getId(),idBook, callback);
+        bookLendingRepository.lendBook(preferences.getInt("id_usuario",0), idBook, callback);
     }
     public void fechaDevolucion(){
         BookLendingRepository bookLendingRepository = new BookLendingRepository();
         BookRepository.ApiCallback<List<BookLending>> callback = new BookRepository.ApiCallback<List<BookLending>>() {
             @Override
             public void onSuccess(List<BookLending> result) {
+                Log.i("ActivityDetails", result.toString());
                 for (BookLending bookLending : result){
-                    if (bookLending.getBookId() == idBook){
+                    if (bookLending.getBookId() == idBook && bookLending.getReturnDate() == null){
                         LocalDateTime fecha = null;
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                             fecha = LocalDateTime.parse(bookLending.getLendDate());
@@ -217,11 +223,14 @@ public class ActivityDetalles extends AppCompatActivity {
                             // Formatear la nueva fecha en "dd/MM/yyyy"
                             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
                             String resultado = nuevaFecha.format(formatter);
+                            //runOnUiThread(() -> textReturnDate.setText(DEVOLUCIÓN + resultado));
+                            Log.i("ActivityDetalles", "Nuevo actual: " + resultado);
                             textReturnDate.setText(DEVOLUCIÓN + resultado);
-                            textReturnDate.setVisibility(VISIBLE);
+
+
                         }
                     }
-                    if (bookLending.getBookId() == idBook && bookLending.getUserId() == SearchHolder.getInstance().getUser().getId()){
+                    if (bookLending.getBookId() == idBook && bookLending.getUserId() == preferences.getInt("id_usuario",0) && bookLending.getReturnDate() == null){
                         botonDevolver.setVisibility(VISIBLE);
                     }
                 }
@@ -236,59 +245,15 @@ public class ActivityDetalles extends AppCompatActivity {
         bookLendingRepository.getAllLendings(callback);
     }
 
-    // Inflar el menú
+    // Inflater del menú en la Toolbar
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.main_menu, menu); // Inflar el archivo de menú
-        return true;
+        return auxiliar.createMenu(menu);
     }
 
-    // Manejar clics en los ítems del menú
+    // listeners de las opciones de la Toolbar
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.menu_home) {
-            Toast.makeText(this, "Inicio", Toast.LENGTH_SHORT).show();
-            Intent intent = new Intent(this, MainActivity.class);
-            startActivity(intent);
-            return true;
-        }
-        else if (item.getItemId() == R.id.menu_search) {
-            Toast.makeText(this, "Buscar", Toast.LENGTH_SHORT).show();
-            if (SearchHolder.getInstance().getUser().getName() == null) {
-                Intent intent = new Intent(this, LoginActivity.class);
-                startActivity(intent);
-            }
-            else{
-                Intent intent = new Intent(this, Activity_books.class);
-                startActivity(intent);
-            }
-            return true;
-        }
-        else if (item.getItemId() == R.id.menu_login) {
-            Toast.makeText(this, "Login", Toast.LENGTH_SHORT).show();
-            Intent intent = new Intent(this, LoginActivity.class);
-            startActivity(intent);
-            return true;
-        }
-        else if (item.getItemId() == R.id.menu_profile) {
-            Toast.makeText(this, "Mi Perfil", Toast.LENGTH_SHORT).show();
-            if (SearchHolder.getInstance().getUser().getName() == null) {
-                Intent intent = new Intent(this, LoginActivity.class);
-                startActivity(intent);
-            }
-            else{
-                Intent intent = new Intent(this, UserActivity.class);
-                startActivity(intent);
-            }
-            return true;
-        }
-        else if (item.getItemId() == R.id.cerrar){
-            SharedPreferences.Editor editor = preferences.edit();
-            editor.clear();
-            editor.apply();
-            Intent intent = new Intent(ActivityDetalles.this, MainActivity.class);
-            startActivity(intent);
-        }
-        return true;
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        return auxiliar.opcionesMenu(item);
     }
 }

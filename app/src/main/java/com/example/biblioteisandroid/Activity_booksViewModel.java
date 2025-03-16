@@ -8,6 +8,7 @@ import com.example.biblioteisandroid.API.repository.BookRepository;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class Activity_booksViewModel extends ViewModel {
     private MutableLiveData<List<Book>> listaLibros = new MutableLiveData<>();
@@ -23,20 +24,21 @@ public class Activity_booksViewModel extends ViewModel {
                         currentList.add(book);
                     }
                     else if (titulo.isEmpty()){
-                        if (autor.equals(book.getAuthor())){
+                        if (book.getAuthor().contains(autor)){
                             currentList.add(book);
                         }
                     }
                     else if (autor.isEmpty()){
-                        if (titulo.equals(book.getTitle())){
+                        if (book.getTitle().contains(titulo)){
                             currentList.add(book);
                         }
                     }
-                    else if (titulo.equals(book.getTitle()) && autor.equals(book.getAuthor())){
+                    else if (book.getTitle().contains(titulo) && book.getAuthor().contains(autor)){
                         currentList.add(book);
                     }
                 }
-                listaLibros.setValue(currentList);
+                if (!Objects.equals(listaLibros.getValue(), currentList))
+                    listaLibros.setValue(currentList);
             }
 
             @Override

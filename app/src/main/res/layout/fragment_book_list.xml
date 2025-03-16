@@ -11,6 +11,16 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
+        <TextView
+            android:id="@+id/txtAutorLibro"
+            android:layout_width="235dp"
+            android:layout_height="27dp"
+            android:layout_marginStart="24dp"
+            android:layout_marginTop="20dp"
+            android:text="TextView"
+            app:layout_constraintStart_toEndOf="@+id/imgBook"
+            app:layout_constraintTop_toBottomOf="@+id/txtTitulo" />
+
         <ImageView
             android:id="@+id/imgBook"
             android:layout_width="125dp"
@@ -41,6 +51,16 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/txtTitulo"
             app:layout_constraintVertical_bias="1.0" />
+
+        <TextView
+            android:id="@+id/txtDisponibilidad"
+            android:layout_width="130dp"
+            android:layout_height="26dp"
+            android:layout_marginStart="24dp"
+            android:layout_marginTop="24dp"
+            android:text="TextView"
+            app:layout_constraintStart_toEndOf="@+id/imgBook"
+            app:layout_constraintTop_toBottomOf="@+id/txtAutorLibro" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </FrameLayout>

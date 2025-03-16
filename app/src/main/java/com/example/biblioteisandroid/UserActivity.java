@@ -37,7 +37,9 @@ import com.example.biblioteisandroid.API.models.User;
 import com.example.biblioteisandroid.API.repository.BookLendingRepository;
 import com.example.biblioteisandroid.API.repository.BookRepository;
 import com.example.biblioteisandroid.API.repository.ImageRepository;
+import com.example.biblioteisandroid.auxiliar.Auxiliar;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.GeneralSecurityException;
@@ -57,6 +59,8 @@ public class UserActivity extends AppCompatActivity {
     RecyclerView rvBookUserList;
     TextView textNombre, textEmail, textFecha;
     Button buttonVolver;
+
+    Auxiliar auxiliar;
 
     List<BookLending> listaLibros = new ArrayList<>();
 
@@ -101,9 +105,8 @@ public class UserActivity extends AppCompatActivity {
             throw new RuntimeException(e);
         }
         // Configurar el Toolbar
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        getSupportActionBar().setTitle("BibliotecaTeis");
+        auxiliar = new Auxiliar(this);
+        auxiliar.setUpToolbar();
 
         String fechaOriginal = preferences.getString("fecha", "");
 
@@ -155,8 +158,8 @@ public class UserActivity extends AppCompatActivity {
                             listaParaImagenes.add(book);
                         }
                     }
-                    runOnUiThread(() -> rvBookUserList.getAdapter().notifyDataSetChanged());
                 }
+                rvBookUserList.getAdapter().notifyDataSetChanged();
             }
 
             @Override
@@ -193,13 +196,15 @@ public class UserActivity extends AppCompatActivity {
             TextView textTituloBookUser, textFechaDevolucionUser;
             ImageView imagenLibroUser;
 
+            Button botonDetalles;
+
 
             public MyViewHolder(@NonNull View itemView) {
                 super(itemView);
                 textTituloBookUser = itemView.findViewById(R.id.txtLibroTituloUser);
                 textFechaDevolucionUser = itemView.findViewById(R.id.txtDevuelveFechaUser);
                 imagenLibroUser = itemView.findViewById(R.id.imgLibroUser);
-
+                botonDetalles = itemView.findViewById(R.id.btnDetallesUser);
             }
         }
 
@@ -251,12 +256,35 @@ public class UserActivity extends AppCompatActivity {
                 }
                 holder.textFechaDevolucionUser.setText(resultado);
             }
-            rvBookUserList.post(new Runnable() {
+            holder.botonDetalles.setOnClickListener(new View.OnClickListener() {
                 @Override
-                public void run() {
-                    rvBookUserList.getAdapter().notifyDataSetChanged();
+                public void onClick(View v) {
+                    Log.d("Detalles", "Botón presionado en posición: " + position);
+                    Intent intent = new Intent(v.getContext(), ActivityDetalles.class);
+                    holder.imagenLibroUser.invalidate();
+                    holder.imagenLibroUser.setDrawingCacheEnabled(true);
+                    holder.imagenLibroUser.buildDrawingCache();
+                    Bitmap bitmap = holder.imagenLibroUser.getDrawingCache();
+
+                    if (bitmap != null) {
+                        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+                        bitmap.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream);
+                        byte[] byteArray = byteArrayOutputStream.toByteArray();
+                        intent.putExtra("imagen", byteArray);
+                    } else {
+                        Log.e("Detalles", "Bitmap es null");
+                    }
+
+                    intent.putExtra("titulo", book.getTitle());
+                    intent.putExtra("autor", book.getAuthor());
+                    intent.putExtra("isbn", book.getIsbn());
+                    intent.putExtra("fecha", book.getPublishedDate());
+                    intent.putExtra("disponible", book.isAvailable());
+                    intent.putExtra("id",book.getId());
+                    startActivity(intent);
                 }
             });
+
 
         }
 
@@ -265,55 +293,15 @@ public class UserActivity extends AppCompatActivity {
             return listaLibros.size();
         }
     }
-    // Inflar el menú
+    // Inflater del menú en la Toolbar
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.main_menu, menu); // Inflar el archivo de menú
-        return true;
+        return auxiliar.createMenu(menu);
     }
 
-    // Manejar clics en los ítems del menú
+    // listeners de las opciones de la Toolbar
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.menu_home) {
-            Intent intent = new Intent(UserActivity.this, MainActivity.class);
-            startActivity(intent);
-            return true;
-        }
-        else if (item.getItemId() == R.id.menu_search) {
-            if (preferences.getString("nombre", "No definido").equals("No definido")) {
-                Intent intent = new Intent(UserActivity.this, LoginActivity.class);
-                startActivity(intent);
-            }
-            else{
-                Intent intent = new Intent(UserActivity.this, Activity_books.class);
-                startActivity(intent);
-            }
-            return true;
-        }
-        else if (item.getItemId() == R.id.menu_login) {
-            Intent intent = new Intent(UserActivity.this, LoginActivity.class);
-            startActivity(intent);
-            return true;
-        }
-        else if (item.getItemId() == R.id.menu_profile) {
-            if (preferences.getString("nombre", "No definido").equals("No definido")) {
-                Intent intent = new Intent(UserActivity.this, LoginActivity.class);
-                startActivity(intent);
-            }
-            else{
-                Intent intent = new Intent(UserActivity.this, UserActivity.class);
-                startActivity(intent);
-            }
-            return true;
-        }
-        else if (item.getItemId() == R.id.cerrar){
-            SharedPreferences.Editor editor = preferences.edit();
-            editor.clear();
-            editor.apply();
-            Intent intent = new Intent(UserActivity.this, MainActivity.class);
-            startActivity(intent);
-        }
-        return true;
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        return auxiliar.opcionesMenu(item);
     }
 }

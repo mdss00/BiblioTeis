@@ -30,6 +30,7 @@ import androidx.security.crypto.MasterKey;
 import com.example.biblioteisandroid.API.models.Book;
 import com.example.biblioteisandroid.API.repository.BookRepository;
 import com.example.biblioteisandroid.API.repository.ImageRepository;
+import com.example.biblioteisandroid.auxiliar.Auxiliar;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -47,6 +48,7 @@ public class Activity_books extends AppCompatActivity {
     Button btnBuscar;
     EditText edtTitulo;
     EditText edtAutor;
+    Auxiliar auxiliar;
     List<Book> listaBusqueda = new ArrayList<>();
     List<Bitmap> listaImagenes = new ArrayList<Bitmap>();
     Activity_booksViewModel  viewModel;
@@ -102,11 +104,8 @@ public class Activity_books extends AppCompatActivity {
                 }
             }
         });
-        // Configurar el Toolbar
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        getSupportActionBar().setTitle("BibliotecaTeis");
-
+        auxiliar = new Auxiliar(this);
+        auxiliar.setUpToolbar();
         btnBuscar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -119,12 +118,14 @@ public class Activity_books extends AppCompatActivity {
         List<Book> bookList = new ArrayList<>();
 
         public void setBooks(List<Book> books){
-            bookList = books;
-            notifyDataSetChanged();
+            if (bookList != books){
+                bookList = books;
+                notifyDataSetChanged();
+            }
         }
         // ViewHolder interno
         class MyViewHolder extends RecyclerView.ViewHolder {
-            TextView textTitulo;
+            TextView textTitulo, textAutorLibro, textDisponibilidad;
             ImageView imagenLibro;
             Button btnDetalles;
 
@@ -134,6 +135,8 @@ public class Activity_books extends AppCompatActivity {
                 textTitulo = itemView.findViewById(R.id.txtTitulo);
                 imagenLibro = itemView.findViewById(R.id.imgBook);
                 btnDetalles = itemView.findViewById(R.id.btnDetalles);
+                textAutorLibro = itemView.findViewById(R.id.txtAutorLibro);
+                textDisponibilidad = itemView.findViewById(R.id.txtDisponibilidad);
 
             }
         }
@@ -149,6 +152,13 @@ public class Activity_books extends AppCompatActivity {
         public void onBindViewHolder(@NonNull MyViewHolder holder, int position) {
 
             holder.textTitulo.setText(bookList.get(position).getTitle());
+            holder.textAutorLibro.setText(bookList.get(position).getAuthor());
+            if (bookList.get(position).isAvailable()) {
+                holder.textDisponibilidad.setText("Disponible");
+            }
+            else {
+                holder.textDisponibilidad.setText("No disponible");
+            }
             BookRepository.ApiCallback<ResponseBody> cback = new BookRepository.ApiCallback<ResponseBody>() {
                 @Override
                 public void onSuccess(ResponseBody result) {
@@ -203,55 +213,16 @@ public class Activity_books extends AppCompatActivity {
         viewModel.loadBooks(edtTitulo.getText().toString(), edtAutor.getText().toString());
     }
 
-    // Inflar el menú
+    // Inflater del menú en la Toolbar
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.main_menu, menu); // Inflar el archivo de menú
-        return true;
+        return auxiliar.createMenu(menu);
     }
 
-    // Manejar clics en los ítems del menú
+    // listeners de las opciones de la Toolbar
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.menu_home) {
-            Intent intent = new Intent(Activity_books.this, MainActivity.class);
-            startActivity(intent);
-            return true;
-        }
-        else if (item.getItemId() == R.id.menu_search) {
-            if (preferences.getString("nombre", "No definido").equals("No definido")) {
-                Intent intent = new Intent(Activity_books.this, LoginActivity.class);
-                startActivity(intent);
-            }
-            else{
-                Intent intent = new Intent(Activity_books.this, Activity_books.class);
-                startActivity(intent);
-            }
-            return true;
-        }
-        else if (item.getItemId() == R.id.menu_login) {
-            Intent intent = new Intent(Activity_books.this, LoginActivity.class);
-            startActivity(intent);
-            return true;
-        }
-        else if (item.getItemId() == R.id.menu_profile) {
-            if (preferences.getString("nombre", "No definido").equals("No definido")) {
-                Intent intent = new Intent(Activity_books.this, LoginActivity.class);
-                startActivity(intent);
-            }
-            else{
-                Intent intent = new Intent(Activity_books.this, UserActivity.class);
-                startActivity(intent);
-            }
-            return true;
-        }
-        else if (item.getItemId() == R.id.cerrar){
-            SharedPreferences.Editor editor = preferences.edit();
-            editor.clear();
-            editor.apply();
-            Intent intent = new Intent(Activity_books.this, MainActivity.class);
-            startActivity(intent);
-        }
-        return true;
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        return auxiliar.opcionesMenu(item);
     }
+
 }
